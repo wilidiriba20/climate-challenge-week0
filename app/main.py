@@ -4,7 +4,7 @@ from utils import load_data
 
 st.set_page_config(page_title="EthioClimate Analytics", layout="wide")
 
-st.title("🌍 COP32 Climate Trend Analysis")
+st.title("COP32 Climate Trend Analysis")
 st.markdown("Exploratory Data Analysis for African Climate Vulnerability")
 
 # 1. Sidebar Widgets
