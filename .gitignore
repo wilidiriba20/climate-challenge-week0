@@ -1,7 +1,10 @@
 venv/
-data/
 *.csv
 .ipynb_checkpoints/
 __pycache__/
 .env
 *.env
+# Ignore raw data
+data/*.csv
+# But allow the cleaned files (if you choose this path)
+!data/*_clean.csv
