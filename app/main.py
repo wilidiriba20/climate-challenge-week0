@@ -1,50 +1,42 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
+from utils import load_data
 
-# LOAD DATASETS
-ethiopia = pd.read_csv("data/ethiopia_clean.csv")
-kenya = pd.read_csv("data/kenya_clean.csv")
-sudan = pd.read_csv("data/sudan_clean.csv")
-tanzania = pd.read_csv("data/tanzania_clean.csv")
-nigeria = pd.read_csv("data/nigeria_clean.csv")
+st.set_page_config(page_title="EthioClimate Analytics", layout="wide")
 
-df = pd.concat([ethiopia, kenya, sudan, tanzania, nigeria])
+st.title("🌍 COP32 Climate Trend Analysis")
+st.markdown("Exploratory Data Analysis for African Climate Vulnerability")
 
-st.title(" Climate Dashboard")
+# 1. Sidebar Widgets
+st.sidebar.header("Filters")
+df = load_data()
 
-# COUNTRY SELECTOR
-countries = st.multiselect(
-    "Select Country",
-    df["Country"].unique(),
-    default=list(df["Country"].unique())
+# Country Selector
+selected_countries = st.sidebar.multiselect(
+    "Select Countries", 
+    options=df['country'].unique(), 
+    default=df['country'].unique()
 )
 
-# YEAR FILTER
-year_range = st.slider(
-    "Select Year Range",
-    int(df["YEAR"].min()),
-    int(df["YEAR"].max()),
-    (2015, 2026)
-)
+# Year Slider
+min_year, max_year = int(df['YEAR'].min()), int(df['YEAR'].max())
+year_range = st.sidebar.slider("Select Year Range", min_year, max_year, (min_year, max_year))
 
-# FILTER DATA
-filtered = df[
-    (df["Country"].isin(countries)) &
-    (df["YEAR"] >= year_range[0]) &
-    (df["YEAR"] <= year_range[1])
+# Filtered Data
+filtered_df = df[
+    (df['country'].isin(selected_countries)) & 
+    (df['YEAR'].between(year_range[0], year_range[1]))
 ]
 
-# TEMPERATURE TREND
-st.subheader("Temperature Trend")
+# 2. Main Visualizations
+col1, col2 = st.columns(2)
 
-temp = filtered.groupby(["YEAR", "Country"])["T2M"].mean().unstack()
-st.line_chart(temp)
+with col1:
+    st.subheader("Temperature Trends (T2M)")
+    fig_temp = px.line(filtered_df, x='YEAR', y='T2M', color='country', title="Mean Temperature Over Time")
+    st.plotly_chart(fig_temp, use_container_width=True)
 
-# PRECIPITATION BOXPLOT
-st.subheader("Precipitation Distribution")
-
-fig, ax = plt.subplots()
-sns.boxplot(x="Country", y="PRECTOTCORR", data=filtered, ax=ax)
-st.pyplot(fig)
+with col2:
+    st.subheader("Precipitation Distribution")
+    fig_precip = px.box(filtered_df, x='country', y='PRECTOTCORR', color='country', title="Rainfall Variability")
+    st.plotly_chart(fig_precip, use_container_width=True)
